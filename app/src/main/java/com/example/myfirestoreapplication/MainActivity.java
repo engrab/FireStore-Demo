@@ -4,7 +4,6 @@ import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -17,31 +16,29 @@ import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.MetadataChanges;
+import com.google.firebase.firestore.SetOptions;
 import com.google.firebase.firestore.Source;
 
-import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static final String USER_COLLECTION = "users";
+    private static final String USER_COLLECTION = "test";
     private static final String PERSION1 = "person1";
     private static final String KEY_NAME = "name";
     private static final String KEY_AGE = "age";
     private static final String TAG = MainActivity.class.getSimpleName();
     EditText mName, mAge;
-    Button mSave, mRead;
+    Button mSave, mRead, mUpdate;
     FirebaseFirestore mFireStore;
-    private DocumentReference documentReference;
+    private DocumentReference mDocumentReference;
     TextView mOutput;
 
     @Override
@@ -52,7 +49,7 @@ public class MainActivity extends AppCompatActivity {
         initView();
 
         mFireStore = FirebaseFirestore.getInstance();
-        documentReference = mFireStore.collection(USER_COLLECTION).document("person1");
+        mDocumentReference = mFireStore.collection(USER_COLLECTION).document(PERSION1);
 
         mSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,73 +60,99 @@ public class MainActivity extends AppCompatActivity {
         mRead.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                readData();
+//                readData();
             }
         });
-    }
-
-    private void readData() {
-
-        documentReference.get(Source.DEFAULT)
-
-                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
-                    @Override
-                    public void onSuccess(DocumentSnapshot documentSnapshot) {
-                        if (documentSnapshot.exists()){
-                            String name = documentSnapshot.getString(KEY_NAME);
-                            String age = documentSnapshot.getString(KEY_AGE);
-
-
-                            mOutput.setText(name+"\n"+age);
-                        }
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                       mOutput.setText(e.getLocalizedMessage());
-                    }
-                });
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        documentReference.addSnapshotListener(this, MetadataChanges.INCLUDE, new EventListener<DocumentSnapshot>() {
+        mUpdate.setOnClickListener(new View.OnClickListener() {
             @Override
-            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
-               if (e != null){
-                   Toast.makeText(MainActivity.this, "Some error occue", Toast.LENGTH_LONG).show();
-                   Log.d(TAG, "onEvent: Error");
-                   return;
-               }
-               else {
-                   if (documentSnapshot != null &&documentSnapshot.exists()){
-                       String name =documentSnapshot.getString(KEY_NAME);
-                       String age = documentSnapshot.getString(KEY_AGE);
-
-                       mOutput.setText(name+ "\n"+age);
-                       if (documentSnapshot.getMetadata().hasPendingWrites()){
-                           mOutput.append("Server");
-                       }else {
-                           mOutput.append("Local");
-                       }
-                   }
-               }
+            public void onClick(View v) {
+                updateData();
             }
         });
     }
+
+    private void updateData() {
+        String name =  mName.getText().toString();
+        int age = Integer.parseInt(mAge.getText().toString());
+
+        User user = new User(name, age);
+        Map<String, Object> data = new HashMap<>();
+        data.put(KEY_NAME, user.getName());
+//        data.put(KEY_AGE, user.getAge());
+
+        // total replace the document...if does not exsist data write it
+//        mDocumentReference.set(data);
+
+        // only merge that data
+//        mDocumentReference.set(data, SetOptions.merge());
+
+        // only update if does not exist data ... can't show any thing
+        mDocumentReference.update(data);
+    }
+
+//    private void readData() {
+//
+//        mDocumentReference.get(Source.DEFAULT)
+//
+//                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+//                    @Override
+//                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+//                        if (documentSnapshot.exists()){
+//                            String name = documentSnapshot.getString(KEY_NAME);
+//                            String age = documentSnapshot.getString(KEY_AGE);
+//
+//
+//                            mOutput.setText(name+"\n"+age);
+//                        }
+//                    }
+//                })
+//                .addOnFailureListener(new OnFailureListener() {
+//                    @Override
+//                    public void onFailure(@NonNull Exception e) {
+//                       mOutput.setText(e.getLocalizedMessage());
+//                    }
+//                });
+//    }
+
+//    @Override
+//    protected void onStart() {
+//        super.onStart();
+//        mDocumentReference.addSnapshotListener(this, MetadataChanges.INCLUDE, new EventListener<DocumentSnapshot>() {
+//            @Override
+//            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+//               if (e != null){
+//                   Toast.makeText(MainActivity.this, "Some error occue", Toast.LENGTH_LONG).show();
+//                   Log.d(TAG, "onEvent: Error");
+//                   return;
+//               }
+//               else {
+//                   if (documentSnapshot != null &&documentSnapshot.exists()){
+//                       String name =documentSnapshot.getString(KEY_NAME);
+//                       String age = documentSnapshot.getString(KEY_AGE);
+//
+//                       mOutput.setText(name+ "\n"+age);
+//                       if (documentSnapshot.getMetadata().hasPendingWrites()){
+//                           mOutput.append("Server");
+//                       }else {
+//                           mOutput.append("Local");
+//                       }
+//                   }
+//               }
+//            }
+//        });
+//    }
 
     private void saveData() {
 
         String name = mName.getText().toString().trim();
-        String age = mAge.getText().toString();
+        int age = Integer.parseInt(mAge.getText().toString());
 
-       Map<String, String > data = new HashMap<>();
-        data.put(KEY_NAME, name);
-        data.put(KEY_AGE, age);
+        User user = new User(name, age);
+       Map<String, Object > data = new HashMap<>();
+        data.put(KEY_NAME, user.getName());
+        data.put(KEY_AGE, user.getAge());
 
-        documentReference.set(data)
+        mDocumentReference.set(data)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -150,5 +173,6 @@ public class MainActivity extends AppCompatActivity {
         mRead = findViewById(R.id.btn_read);
         mSave = findViewById(R.id.btn_save);
         mOutput = findViewById(R.id.tv_output);
+        mUpdate = findViewById(R.id.btn_update_data);
     }
 }
