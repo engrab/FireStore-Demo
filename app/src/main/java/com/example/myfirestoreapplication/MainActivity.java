@@ -3,6 +3,7 @@ package com.example.myfirestoreapplication;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -11,16 +12,19 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.Source;
 
 import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -60,7 +64,8 @@ public class MainActivity extends AppCompatActivity {
 
     private void readData() {
 
-        documentReference.get()
+        documentReference.get(Source.SERVER)
+
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
                     public void onSuccess(DocumentSnapshot documentSnapshot) {
@@ -68,8 +73,15 @@ public class MainActivity extends AppCompatActivity {
                             String name = documentSnapshot.getString(KEY_NAME);
                             String age = documentSnapshot.getString(KEY_AGE);
 
+
                             mOutput.setText(name+"\n"+age);
                         }
+                    }
+                })
+                .addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                       mOutput.setText(e.getLocalizedMessage());
                     }
                 });
     }
