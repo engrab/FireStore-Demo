@@ -19,6 +19,8 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FieldPath;
+import com.google.firebase.firestore.FieldValue;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.FirebaseFirestoreException;
 import com.google.firebase.firestore.MetadataChanges;
@@ -36,7 +38,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String KEY_AGE = "age";
     private static final String TAG = MainActivity.class.getSimpleName();
     EditText mName, mAge;
-    Button mSave, mRead, mUpdate;
+    Button mSave, mRead, mUpdate, mDeleteName, mDeletePerson;
     FirebaseFirestore mFireStore;
     private DocumentReference mDocumentReference;
     TextView mOutput;
@@ -69,6 +71,30 @@ public class MainActivity extends AppCompatActivity {
                 updateData();
             }
         });
+
+        mDeleteName.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deleteName();
+            }
+        });
+
+        mDeletePerson.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                deletePerson();
+            }
+        });
+    }
+
+    private void deletePerson() {
+        // delete the whole collection
+        mDocumentReference.delete();
+    }
+
+    private void deleteName() {
+        // delete only field of that docment
+        mDocumentReference.update(KEY_NAME, FieldValue.delete());
     }
 
     private void updateData() {
@@ -174,5 +200,7 @@ public class MainActivity extends AppCompatActivity {
         mSave = findViewById(R.id.btn_save);
         mOutput = findViewById(R.id.tv_output);
         mUpdate = findViewById(R.id.btn_update_data);
+        mDeleteName = findViewById(R.id.btn_delete_name);
+        mDeletePerson = findViewById(R.id.btn_delete_person);
     }
 }
