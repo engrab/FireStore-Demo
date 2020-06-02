@@ -11,10 +11,14 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
+import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
 import com.google.firebase.firestore.FirebaseFirestore;
 
+import java.sql.Date;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -38,7 +42,7 @@ public class MainActivity extends AppCompatActivity {
         initView();
 
         mFireStore = FirebaseFirestore.getInstance();
-        documentReference = mFireStore.collection(USER_COLLECTION).document();
+        documentReference = mFireStore.collection(USER_COLLECTION).document("person1");
 
         mSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -56,6 +60,18 @@ public class MainActivity extends AppCompatActivity {
 
     private void readData() {
 
+        documentReference.get()
+                .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
+                    @Override
+                    public void onSuccess(DocumentSnapshot documentSnapshot) {
+                        if (documentSnapshot.exists()){
+                            String name = documentSnapshot.getString(KEY_NAME);
+                            String age = documentSnapshot.getString(KEY_AGE);
+
+                            mOutput.setText(name+"\n"+age);
+                        }
+                    }
+                });
     }
 
     private void saveData() {
@@ -63,7 +79,7 @@ public class MainActivity extends AppCompatActivity {
         String name = mName.getText().toString().trim();
         String age = mAge.getText().toString();
 
-       HashMap<String, String> data = new HashMap<>();
+       Map<String, String > data = new HashMap<>();
         data.put(KEY_NAME, name);
         data.put(KEY_AGE, age);
 
