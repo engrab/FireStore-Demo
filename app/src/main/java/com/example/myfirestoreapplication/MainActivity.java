@@ -1,10 +1,12 @@
 package com.example.myfirestoreapplication;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
@@ -18,7 +20,10 @@ import com.google.android.gms.tasks.Task;
 import com.google.firebase.Timestamp;
 import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
 import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.MetadataChanges;
 import com.google.firebase.firestore.Source;
 
 import java.sql.Date;
@@ -32,6 +37,7 @@ public class MainActivity extends AppCompatActivity {
     private static final String PERSION1 = "person1";
     private static final String KEY_NAME = "name";
     private static final String KEY_AGE = "age";
+    private static final String TAG = MainActivity.class.getSimpleName();
     EditText mName, mAge;
     Button mSave, mRead;
     FirebaseFirestore mFireStore;
@@ -64,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
     private void readData() {
 
-        documentReference.get(Source.SERVER)
+        documentReference.get(Source.DEFAULT)
 
                 .addOnSuccessListener(new OnSuccessListener<DocumentSnapshot>() {
                     @Override
@@ -84,6 +90,34 @@ public class MainActivity extends AppCompatActivity {
                        mOutput.setText(e.getLocalizedMessage());
                     }
                 });
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        documentReference.addSnapshotListener(this, MetadataChanges.INCLUDE, new EventListener<DocumentSnapshot>() {
+            @Override
+            public void onEvent(@Nullable DocumentSnapshot documentSnapshot, @Nullable FirebaseFirestoreException e) {
+               if (e != null){
+                   Toast.makeText(MainActivity.this, "Some error occue", Toast.LENGTH_LONG).show();
+                   Log.d(TAG, "onEvent: Error");
+                   return;
+               }
+               else {
+                   if (documentSnapshot != null &&documentSnapshot.exists()){
+                       String name =documentSnapshot.getString(KEY_NAME);
+                       String age = documentSnapshot.getString(KEY_AGE);
+
+                       mOutput.setText(name+ "\n"+age);
+                       if (documentSnapshot.getMetadata().hasPendingWrites()){
+                           mOutput.append("Server");
+                       }else {
+                           mOutput.append("Local");
+                       }
+                   }
+               }
+            }
+        });
     }
 
     private void saveData() {
