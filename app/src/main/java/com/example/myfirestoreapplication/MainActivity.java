@@ -12,14 +12,11 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
-import com.google.firebase.FirebaseApp;
+import com.google.firebase.firestore.DocumentReference;
 import com.google.firebase.firestore.FirebaseFirestore;
-import com.google.protobuf.Any;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static com.google.common.net.HttpHeaders.AGE;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -30,7 +27,9 @@ public class MainActivity extends AppCompatActivity {
     EditText mName, mAge;
     Button mSave, mRead;
     FirebaseFirestore mFireStore;
+    private DocumentReference documentReference;
     TextView mOutput;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -39,6 +38,7 @@ public class MainActivity extends AppCompatActivity {
         initView();
 
         mFireStore = FirebaseFirestore.getInstance();
+        documentReference = mFireStore.collection(USER_COLLECTION).document();
 
         mSave.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -63,11 +63,11 @@ public class MainActivity extends AppCompatActivity {
         String name = mName.getText().toString().trim();
         String age = mAge.getText().toString();
 
-        HashMap<String , String> data = new HashMap<>();
+       HashMap<String, String> data = new HashMap<>();
         data.put(KEY_NAME, name);
         data.put(KEY_AGE, age);
 
-        mFireStore.collection(USER_COLLECTION).document().set(data)
+        documentReference.set(data)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
                     public void onComplete(@NonNull Task<Void> task) {
@@ -75,8 +75,7 @@ public class MainActivity extends AppCompatActivity {
                             Toast.makeText(MainActivity.this, "Data is Saved", Toast.LENGTH_SHORT).show();
 
                             mOutput.setText("Data is Saved");
-                        }
-                        else
+                        } else
                             Toast.makeText(MainActivity.this, "Some Error occure", Toast.LENGTH_LONG).show();
                     }
                 });
